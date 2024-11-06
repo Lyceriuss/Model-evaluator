@@ -4,18 +4,22 @@ import os
 import json
 import torch
 from torch.utils.data import DataLoader
-from torch.utils.data.dataloader import default_collate
 from torchvision import transforms
 import torch.optim as optim
 import torch.nn as nn
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np  
+import argparse  # Added import
 
 from my_package import ClothingDataset, ClothingModel
 
-
 def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Train Clothing Classification Model')
+    parser.add_argument('--model', type=str, default='resnet50', choices=['resnet50', 'efficientnet_b0'], help='Model architecture to use')
+    args = parser.parse_args()
+    model_name = args.model
 
     # Set random seed for reproducibility
     seed = 42
@@ -51,7 +55,7 @@ def main():
     print("Label to index mapping:", label_to_index)
     
     # Initialize model, loss function, optimizer
-    model = ClothingModel(num_classes=num_classes).to(device)
+    model = ClothingModel(num_classes=num_classes, model_name=model_name).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
     
@@ -62,8 +66,7 @@ def main():
     train_loss_per_epoch = []
     train_accuracy_per_epoch = []
     
-
-    with open('training_log.txt', 'w') as log_file:
+    with open(f'training_log_{model_name}.txt', 'w') as log_file:
         log_file.write('Image_Path\tPredicted_Label\tActual_Label\tCorrect\n')  # Header
 
         for epoch in range(num_epochs):
@@ -116,7 +119,7 @@ def main():
     plt.plot(range(1, num_epochs + 1), train_loss_per_epoch, label='Training Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
-    plt.title('Training Loss per Epoch')
+    plt.title(f'Training Loss per Epoch ({model_name})')
     plt.legend()
     
     # Accuracy plot
@@ -124,15 +127,17 @@ def main():
     plt.plot(range(1, num_epochs + 1), train_accuracy_per_epoch, label='Training Accuracy', color='orange')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy (%)')
-    plt.title('Training Accuracy per Epoch')
+    plt.title(f'Training Accuracy per Epoch ({model_name})')
     plt.legend()
     
     plt.tight_layout()
+    plt.savefig(f'training_performance_{model_name}.png')
     plt.show()
     
     # Save the trained model
-    torch.save(model.state_dict(), 'resnet50_clothing_model_front_only.pth')
-    print("Model saved successfully.")
+    model_save_path = f'{model_name}_clothing_model.pth'
+    torch.save(model.state_dict(), model_save_path)
+    print(f"Model saved successfully as {model_save_path}.")
 
 if __name__ == '__main__':
     main()

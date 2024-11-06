@@ -4,18 +4,21 @@ import os
 import json
 import torch
 from torch.utils.data import DataLoader
-from torch.utils.data.dataloader import default_collate
 from torchvision import transforms
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np  
 import torch.nn as nn
+import argparse  # Added import
 
 from my_package import ClothingDataset, ClothingModel
-from sklearn.metrics import confusion_matrix, classification_report
-import seaborn as sns
 
 def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Evaluate Clothing Classification Model')
+    parser.add_argument('--model', type=str, default='resnet50', choices=['resnet50', 'efficientnet_b0'], help='Model architecture to evaluate')
+    args = parser.parse_args()
+    model_name = args.model
 
     # Set random seed for reproducibility
     seed = 42
@@ -62,10 +65,10 @@ def main():
     print("Label to index mapping:", label_to_index)
     
     # Initialize model
-    model = ClothingModel(num_classes=num_classes).to(device)
+    model = ClothingModel(num_classes=num_classes, model_name=model_name).to(device)
 
     # Load saved model
-    model_path = 'resnet50_clothing_model_front_only.pth'  # Update with your model file name
+    model_path = f'{model_name}_clothing_model.pth'  # Update with your model file name
 
     # Suppress FutureWarning if necessary
     import warnings
@@ -73,7 +76,7 @@ def main():
         warnings.simplefilter("ignore", category=FutureWarning)
         model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
-    print("Model loaded successfully.")
+    print(f"Model loaded successfully from {model_path}.")
 
     # Evaluation
     criterion = nn.CrossEntropyLoss()
@@ -86,7 +89,7 @@ def main():
     all_labels = []
 
     # Open testing log file
-    with open('testing_log.txt', 'w') as test_log_file:
+    with open(f'testing_log_{model_name}.txt', 'w') as test_log_file:
         test_log_file.write('Image_Path\tPredicted_Label\tActual_Label\tCorrect\n')  # Header
 
         with torch.no_grad():
@@ -125,20 +128,27 @@ def main():
     test_accuracy = 100 * test_correct / test_total
     print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%")
 
-    # Optionally, plot confusion matrix or other evaluation metrics
-    # For example:
+    # Import metrics
+    from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
-    # Generate confusion matrix
+    # Generate classification report
+    target_names = list(index_to_label.values())
+    report = classification_report(all_labels, all_preds, target_names=target_names, zero_division=0)
+    print(f"Classification Report for {model_name}:\n", report)
+
+    # Save classification report to a file
+    with open(f'classification_report_{model_name}.txt', 'w') as f:
+        f.write(report)
+
+    # Plot confusion matrix
     cm = confusion_matrix(all_labels, all_preds)
-    plt.figure(figsize=(12,10))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=index_to_label.values(), yticklabels=index_to_label.values())
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.title('Confusion Matrix')
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=target_names)
+    plt.figure(figsize=(12, 10))
+    disp.plot(include_values=True, cmap='Blues', ax=plt.gca(), xticks_rotation='vertical')
+    plt.title(f'Confusion Matrix ({model_name})')
+    plt.tight_layout()
+    plt.savefig(f'confusion_matrix_{model_name}.png')
     plt.show()
-
-    # Print classification report
-    print(classification_report(all_labels, all_preds, target_names=list(index_to_label.values())))
 
 if __name__ == '__main__':
     main()
