@@ -3,7 +3,7 @@
 import os
 import json
 import torch
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import default_collate
 from torchvision import transforms
 import torch.optim as optim
@@ -17,8 +17,10 @@ from my_package import ClothingDataset, ClothingModel
 
 def main():
 
-
-
+    # Set random seed for reproducibility
+    seed = 42
+    torch.manual_seed(seed)
+    np.random.seed(seed)
     
     # Set device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -88,18 +90,15 @@ def main():
                 # Logging per batch
                 for i in range(labels.size(0)):
                     img_path = image_paths[i]
-                    file_name = os.path.basename(img_path)  #To reduce the size of the path, but still maintain the path if needed in the future
+                    file_name = os.path.basename(img_path)  # To reduce the size of the path
                     pred_label_idx = predicted[i].item()
                     actual_label_idx = labels[i].item()
-
 
                     pred_label = index_to_label.get(pred_label_idx, f"Unknown_{pred_label_idx}")
                     actual_label = index_to_label.get(actual_label_idx, f"Unknown_{actual_label_idx}")
                     is_correct = pred_label_idx == actual_label_idx
                     # Write to log file
                     log_file.write(f"{file_name}\t{pred_label}\t{actual_label}\t{is_correct}\n")
-
-
 
             epoch_loss = running_loss / len(dataloader)
             epoch_accuracy = 100 * correct / total
