@@ -9,14 +9,11 @@ from torchvision import transforms
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np  
-import torch.nn as nn  
-# Optionally, plot confusion matrix or other evaluation metrics
-# For example:
-from sklearn.metrics import confusion_matrix, classification_report
-import seaborn as sns
+import torch.nn as nn
 
 from my_package import ClothingDataset, ClothingModel
-
+from sklearn.metrics import confusion_matrix, classification_report
+import seaborn as sns
 
 def main():
 
@@ -88,30 +85,48 @@ def main():
     all_preds = []
     all_labels = []
 
-    with torch.no_grad():
-        for images, labels, image_paths in tqdm(test_loader, desc="Evaluating"):
-            if images.size(0) == 0:
-                continue  # Skip empty batches
-            images = images.to(device)
-            labels = labels.to(device)
+    # Open testing log file
+    with open('testing_log.txt', 'w') as test_log_file:
+        test_log_file.write('Image_Path\tPredicted_Label\tActual_Label\tCorrect\n')  # Header
 
-            outputs = model(images)
-            loss = criterion(outputs, labels)
+        with torch.no_grad():
+            for images, labels, image_paths in tqdm(test_loader, desc="Evaluating"):
+                if images.size(0) == 0:
+                    continue  # Skip empty batches
+                images = images.to(device)
+                labels = labels.to(device)
 
-            test_running_loss += loss.item()
-            _, predicted = torch.max(outputs.data, 1)
-            test_total += labels.size(0)
-            test_correct += (predicted == labels).sum().item()
+                outputs = model(images)
+                loss = criterion(outputs, labels)
 
-            # Collect all predictions and labels
-            all_preds.extend(predicted.cpu().numpy())
-            all_labels.extend(labels.cpu().numpy())
+                test_running_loss += loss.item()
+                _, predicted = torch.max(outputs.data, 1)
+                test_total += labels.size(0)
+                test_correct += (predicted == labels).sum().item()
+
+                # Collect all predictions and labels
+                all_preds.extend(predicted.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
+
+                # Logging per batch
+                for i in range(labels.size(0)):
+                    img_path = image_paths[i]
+                    file_name = os.path.basename(img_path)  # To reduce the size of the path
+                    pred_label_idx = predicted[i].item()
+                    actual_label_idx = labels[i].item()
+
+                    pred_label = index_to_label.get(pred_label_idx, f"Unknown_{pred_label_idx}")
+                    actual_label = index_to_label.get(actual_label_idx, f"Unknown_{actual_label_idx}")
+                    is_correct = pred_label_idx == actual_label_idx
+                    # Write to testing log file
+                    test_log_file.write(f"{file_name}\t{pred_label}\t{actual_label}\t{is_correct}\n")
 
     test_loss = test_running_loss / len(test_loader)
     test_accuracy = 100 * test_correct / test_total
     print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%")
 
-
+    # Optionally, plot confusion matrix or other evaluation metrics
+    # For example:
 
     # Generate confusion matrix
     cm = confusion_matrix(all_labels, all_preds)
