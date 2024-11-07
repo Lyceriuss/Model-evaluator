@@ -71,8 +71,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 
-# Ignore the data directory and its contents
-data/
+
 
 # Pytest
 .cache/
