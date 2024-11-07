@@ -6,10 +6,14 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 import numpy as np
 import torch.nn as nn
+import joblib  # For potential caching needs
 
 from my_package import ClothingDataset, ClothingModel
 
 def get_datasets(root_dir, transform, seed=42):
+    """
+    Load and split the dataset into training and test sets.
+    """
     # Initialize dataset
     dataset = ClothingDataset(root_dir=root_dir, transform=transform)
     
@@ -25,29 +29,39 @@ def get_datasets(root_dir, transform, seed=42):
 
     return train_dataset, test_dataset, dataset
 
-def evaluate_model(model_name, model_path, test_dataset, batch_size=32, device='cpu'):
+def evaluate_model(model_name, model_path, _test_dataset, batch_size=32, device='cpu'):
+    """
+    Evaluate the specified model on the test dataset.
+    The '_test_dataset' parameter is ignored by Streamlit's caching.
+    """
     from sklearn.metrics import classification_report, confusion_matrix
-    import warnings
+
+    # Path to precomputed results
+    results_path = f'evaluation_results_{model_name}.pkl'
+    if os.path.isfile(results_path):
+        return joblib.load(results_path)
+    
+    # Check if the model file exists
+    if not os.path.isfile(model_path):
+        raise FileNotFoundError(f"Model file '{model_path}' not found.")
 
     # Set device
     device = torch.device(device)
 
     # Get label mappings
-    num_classes = len(test_dataset.dataset.labels_set)
-    index_to_label = test_dataset.dataset.index_to_label
+    num_classes = len(_test_dataset.dataset.labels_set)
+    index_to_label = _test_dataset.dataset.index_to_label
 
     # Initialize model
     model = ClothingModel(num_classes=num_classes, model_name=model_name).to(device)
 
     # Load saved model
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=FutureWarning)
-        model.load_state_dict(torch.load(model_path, map_location=device))
+    model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
 
     # DataLoader for test set
     test_loader = DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=False, num_workers=4,
+        _test_dataset, batch_size=batch_size, shuffle=False, num_workers=4,
         collate_fn=ClothingDataset.custom_collate)
 
     # Evaluation
@@ -114,5 +128,8 @@ def evaluate_model(model_name, model_path, test_dataset, batch_size=32, device='
         'all_labels': all_labels,
         'all_image_paths': all_image_paths
     }
+
+    # Save evaluation results
+    joblib.dump(evaluation_results, results_path)
 
     return evaluation_results
