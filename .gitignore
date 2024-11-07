@@ -44,6 +44,14 @@ coverage/
 *.swo
 *.bak
 
+# Ignore only the circular_fashion_v1_extracted folder inside data/
+data/circular_fashion_v1_extracted/
+
+# Ensure that data/ and its Python files are not ignored
+!data/
+!data/*.py
+
+
 # Distribution / Packaging
 .Python
 build/
