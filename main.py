@@ -6,7 +6,6 @@ import torch.optim as optim
 import torch.nn as nn
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-import numpy as np  
 import argparse
 
 from data.data_loader import DataLoaderManager
@@ -15,7 +14,7 @@ from models.model import ClothingModel
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Train Clothing Classification Model')
-    parser.add_argument('--model', type=str, default='resnet50', choices=['resnet50', 'efficientnet_b0'], help='Model architecture to use')
+    parser.add_argument('--model', type=str, default='resnet50', choices=['resnet50', 'efficientnet_b0', 'densenet121'], help='Model architecture to use')
     parser.add_argument('--device', type=str, default='cuda', choices=['cuda', 'cpu'], help='Device to use for training')
     parser.add_argument('--data-dir', type=str, default='data/circular_fashion_v1_extracted', help='Path to the data directory')
     parser.add_argument('--epochs', type=int, default=5, help='Number of training epochs')
@@ -29,6 +28,10 @@ def main():
     learning_rate = args.learning_rate
 
     print(f"Using device: {device}")
+
+    # Define trained_models directory
+    trained_models_dir = os.path.join(os.getcwd(), 'trained_models')
+    os.makedirs(trained_models_dir, exist_ok=True)
 
     # Initialize DataLoaderManager
     data_manager = DataLoaderManager(
@@ -51,8 +54,12 @@ def main():
     train_loss_per_epoch = []
     train_accuracy_per_epoch = []
 
+    # Define paths for log and performance plot
+    training_log_path = os.path.join(trained_models_dir, f'training_log_{model_name}.txt')
+    training_performance_path = os.path.join(trained_models_dir, f'training_performance_{model_name}.png')
+
     # Open log file
-    with open(f'training_log_{model_name}.txt', 'w') as log_file:
+    with open(training_log_path, 'w') as log_file:
         log_file.write('Image_Path\tPredicted_Label\tActual_Label\tCorrect\n')  # Header
 
         for epoch in range(num_epochs):
@@ -119,11 +126,11 @@ def main():
     plt.legend()
 
     plt.tight_layout()
-    plt.savefig(f'training_performance_{model_name}.png')
+    plt.savefig(training_performance_path)
     plt.show()
 
     # Save the trained model
-    model_save_path = f'{model_name}_clothing_model.pth'
+    model_save_path = os.path.join(trained_models_dir, f'{model_name}_clothing_model.pth')
     torch.save(model.state_dict(), model_save_path)
     print(f"Model saved successfully as {model_save_path}.")
 

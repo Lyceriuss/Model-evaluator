@@ -10,19 +10,23 @@ class ClothingModel(nn.Module):
 
         Args:
             num_classes (int): Number of output classes.
-            model_name (str): Model architecture to use ('resnet50' or 'efficientnet_b0').
+            model_name (str): Model architecture to use ('resnet50', 'efficientnet_b0', 'densenet121').
         """
         super(ClothingModel, self).__init__()
         self.model_name = model_name
 
         if model_name == 'resnet50':
-            self.model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+            self.model = models.resnet50(pretrained=True)
             num_features = self.model.fc.in_features
             self.model.fc = nn.Linear(num_features, num_classes)
         elif model_name == 'efficientnet_b0':
-            self.model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
+            self.model = models.efficientnet_b0(pretrained=True)
             num_features = self.model.classifier[1].in_features
             self.model.classifier[1] = nn.Linear(num_features, num_classes)
+        elif model_name == 'densenet121':
+            self.model = models.densenet121(pretrained=True)
+            num_features = self.model.classifier.in_features
+            self.model.classifier = nn.Linear(num_features, num_classes)
         else:
             raise ValueError(f"Unsupported model_name: {model_name}")
 

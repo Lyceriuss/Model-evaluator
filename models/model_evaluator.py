@@ -16,7 +16,7 @@ class ModelEvaluator:
         Initializes the ModelEvaluator with the specified model and data.
 
         Args:
-            model_name (str): Name of the model ('resnet50' or 'efficientnet_b0').
+            model_name (str): Name of the model ('resnet50', 'efficientnet_b0', 'densenet121').
             model_path (str): Path to the saved model file.
             test_loader (DataLoader): DataLoader for the test dataset.
             device (str): Device to perform computations on ('cuda' or 'cpu').
@@ -107,14 +107,14 @@ class ModelEvaluator:
             'all_image_paths': all_image_paths
         }
 
-        self.save_results()
-
         return self.evaluation_results
 
-    def save_results(self):
+    def save_results(self, save_path):
         """
         Saves the evaluation results to a pickle file.
+
+        Args:
+            save_path (str): Path to save the evaluation results.
         """
-        results_path = f'evaluation_results_{self.model_name}.pkl'
-        joblib.dump(self.evaluation_results, results_path)
-        print(f"Evaluation results saved to {results_path}")
+        joblib.dump(self.evaluation_results, save_path)
+        print(f"Evaluation results saved to {save_path}")

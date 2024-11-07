@@ -16,7 +16,7 @@ from PIL import Image
 import io
 
 from data import DataLoaderManager
-from models import ModelEvaluator, ModelComparer
+from models import ModelComparer
 from components import plot_confusion_matrix, plot_comparison_chart, ComparisonHandler
 
 import pandas as pd
@@ -29,6 +29,9 @@ def main():
     st.set_page_config(page_title="Clothing Classification Dashboard", layout="wide")
     st.title("🧥 Clothing Classification Model Evaluation Dashboard")
 
+    # Define trained_models directory
+    trained_models_dir = os.path.join(project_root, 'trained_models')
+
     # Initialize the DataLoaderManager with the same root_dir as main.py
     data_dir = os.path.join(project_root, "data", "circular_fashion_v1_extracted")
     data_manager = DataLoaderManager(
@@ -38,15 +41,15 @@ def main():
         num_workers=0  # Set to 0 to avoid multiprocessing issues on Windows
     )
 
-    # Discover available models based on evaluation result files
-    model_files = [f for f in os.listdir(project_root) if f.startswith('evaluation_results_') and f.endswith('.pkl')]
+    # Discover available models based on evaluation result files in trained_models/
+    model_files = [f for f in os.listdir(trained_models_dir) if f.startswith('evaluation_results_') and f.endswith('.pkl')]
     model_options = [f.replace('evaluation_results_', '').replace('.pkl', '') for f in model_files]
 
     # Sort the model_options for better user experience
     model_options = sorted(model_options)
 
     if not model_options:
-        st.warning("No evaluation results found. Please evaluate models using `evaluate.py` before using the dashboard.")
+        st.warning("No evaluation results found in `trained_models/`. Please evaluate models using `evaluate.py` before using the dashboard.")
         st.stop()
 
     # Sidebar configuration
@@ -60,8 +63,8 @@ def main():
     if selected_option == 'All Models Comparison':
         st.header("📊 All Models Comparison")
 
-        # Initialize ComparisonHandler
-        comparison_handler = ComparisonHandler(model_names=model_options, evaluation_dir=project_root)
+        # Initialize ComparisonHandler with trained_models_dir
+        comparison_handler = ComparisonHandler(model_names=model_options, evaluation_dir=trained_models_dir)
 
         # Get comparison table
         comparison_table = comparison_handler.get_comparison_table()
@@ -85,7 +88,7 @@ def main():
             st.download_button(
                 label="💾 Download Test Accuracy Comparison Chart (PNG)",
                 data=buf,
-                file_name=f'test_accuracy_comparison_chart.png',
+                file_name='test_accuracy_comparison_chart.png',
                 mime='image/png'
             )
 
@@ -101,7 +104,7 @@ def main():
             st.download_button(
                 label="💾 Download Test Loss Comparison Chart (PNG)",
                 data=buf_loss,
-                file_name=f'test_loss_comparison_chart.png',
+                file_name='test_loss_comparison_chart.png',
                 mime='image/png'
             )
 
@@ -153,7 +156,7 @@ def main():
     else:
         # Individual Model Evaluation
         model_name = selected_option
-        model_path = os.path.join(project_root, f'{model_name}_clothing_model.pth')
+        model_path = os.path.join(trained_models_dir, f'{model_name}_clothing_model.pth')
 
         # Check if model file exists
         if not os.path.isfile(model_path):
@@ -161,7 +164,7 @@ def main():
             st.stop()
 
         # Load evaluation results
-        evaluation_results_path = os.path.join(project_root, f'evaluation_results_{model_name}.pkl')
+        evaluation_results_path = os.path.join(trained_models_dir, f'evaluation_results_{model_name}.pkl')
         if not os.path.isfile(evaluation_results_path):
             st.warning(f"Evaluation results for '{model_name}' not found. Please evaluate the model using `evaluate.py`.")
             st.stop()
