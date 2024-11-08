@@ -32,15 +32,6 @@ def main():
     # Define trained_models directory
     trained_models_dir = os.path.join(project_root, 'trained_models')
 
-    # Initialize the DataLoaderManager with the same root_dir as main.py
-    data_dir = os.path.join(project_root, "data", "circular_fashion_v1_extracted")
-    data_manager = DataLoaderManager(
-        root_dir=data_dir,
-        test_split=0.1,
-        batch_size=32,
-        num_workers=0  # Set to 0 to avoid multiprocessing issues on Windows
-    )
-
     # Discover available models based on evaluation result files in trained_models/
     model_files = [f for f in os.listdir(trained_models_dir) if f.startswith('evaluation_results_') and f.endswith('.pkl')]
     model_options = [f.replace('evaluation_results_', '').replace('.pkl', '') for f in model_files]
@@ -74,7 +65,15 @@ def main():
         else:
             # Display comparison table
             st.subheader("Comparison Metrics")
-            st.dataframe(comparison_table.style.highlight_max(axis=0))
+            min_loss_model = comparison_table.loc[comparison_table['Test Loss'].idxmin(), 'Model']
+            max_accuracy_model = comparison_table.loc[comparison_table['Test Accuracy (%)'].idxmax(), 'Model']
+
+            styled_comparison_table = comparison_table.style \
+            .highlight_min(subset=['Test Loss'], color='yellow') \
+            .highlight_max(subset=['Test Accuracy (%)'], color='darkblue') \
+            .apply(lambda x: ['background-color: darkblue' if x['Model'] == min_loss_model or x['Model'] == max_accuracy_model else '' for i in x], axis=1)
+
+            st.dataframe(styled_comparison_table)
 
             # Generate and display Test Accuracy comparison chart
             comparison_chart = comparison_handler.comparer.generate_comparison_chart(metric='Test Accuracy (%)')

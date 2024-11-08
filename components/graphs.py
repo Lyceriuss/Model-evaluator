@@ -30,6 +30,7 @@ def plot_confusion_matrix(cm, labels, title='Confusion Matrix', figsize=(15, 15)
     plt.show()
     return plt
 
+
 def plot_comparison_chart(comparison_df, metric='Test Accuracy (%)', title='Model Comparison'):
     """
     Plots a bar chart comparing a specific metric across models.
@@ -47,6 +48,14 @@ def plot_comparison_chart(comparison_df, metric='Test Accuracy (%)', title='Mode
     plt.title(title)
     plt.ylabel(metric)
     plt.xlabel('Model')
-    plt.ylim(0, 100)
+
+    if metric == 'Test Loss':
+        plt.ylim(0, 1)  # Fixed range for Test Loss
+    else:
+        metric_values = comparison_df[metric]
+        plt.ylim(0, max(metric_values) * 1.1)  # Dynamic range for other metrics
     plt.tight_layout()
     return plt
+
+
+

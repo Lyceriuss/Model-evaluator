@@ -64,12 +64,20 @@ class ModelComparer:
         """
         if self.comparison_df.empty:
             self.load_evaluation_results()
+
         plt.figure(figsize=(10, 6))
         sns.barplot(x='Model', y=metric, data=self.comparison_df, palette='viridis')
         plt.title(f'Model Comparison - {metric}')
         plt.ylabel(metric)
         plt.xlabel('Model')
-        plt.ylim(0, 100)
+
+        # Set y-axis limit based on metric
+        if metric == 'Test Loss':
+            plt.ylim(0, 1)  # Fixed range for Test Loss
+        else:
+            metric_values = self.comparison_df[metric]
+            plt.ylim(0, max(metric_values) * 1.1)  # Dynamic range for other metrics
+
         plt.tight_layout()
         return plt
 
