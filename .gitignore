@@ -85,3 +85,4 @@ share/python-wheels/
 # Jupyter Notebook saved session metadata
 *.nb.html
 *.nb.json
+trained_models/
