@@ -1,6 +1,8 @@
 # models/model.py
 
+from transformers import AutoModelForImageClassification, AutoImageProcessor
 import torch.nn as nn
+import torch
 from torchvision import models
 
 class ClothingModel(nn.Module):
@@ -35,6 +37,12 @@ class ClothingModel(nn.Module):
             self.model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
             num_features = self.model.fc.in_features
             self.model.fc = nn.Linear(num_features, num_classes)
+        elif model_name == 'microsoft/beit-base-patch16-224-pt22k-ft22k':
+            self.processor = AutoImageProcessor.from_pretrained("microsoft/beit-base-patch16-224-pt22k-ft22k")
+            self.model = AutoModelForImageClassification.from_pretrained(
+                "microsoft/beit-base-patch16-224-pt22k-ft22k",
+                num_labels=num_classes  # Configuring for number of classes in dataset
+            )
         else:
             raise ValueError(f"Unsupported model_name: {model_name}")
 

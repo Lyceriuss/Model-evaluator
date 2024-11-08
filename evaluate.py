@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 def main():
     parser = argparse.ArgumentParser(description='Evaluate Clothing Classification Model')
-    parser.add_argument('--model', type=str, required=True, choices=['resnet18','resnet50', 'efficientnet_b0', 'densenet121', 'vit-base-patch16-224'], help='Model architecture to evaluate')
+    parser.add_argument('--model', type=str, required=True, choices=['resnet18','resnet50', 'efficientnet_b0', 'densenet121', 'vit-base-patch16-224', 'microsoft/beit-base-patch16-224-pt22k-ft22k'], help='Model architecture to evaluate')
     parser.add_argument('--device', type=str, default='cuda', help='Device to use (e.g., "cuda" or "cpu")')
     parser.add_argument('--data-dir', type=str, default='data/circular_fashion_v1_extracted', help='Path to the data directory')
     args = parser.parse_args()
