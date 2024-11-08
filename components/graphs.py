@@ -4,23 +4,30 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import ConfusionMatrixDisplay
 
-def plot_confusion_matrix(cm, labels, title='Confusion Matrix'):
+
+def plot_confusion_matrix(cm, labels, title='Confusion Matrix', figsize=(15, 15), fontsize=10):
     """
-    Plots the confusion matrix.
+    Plots a confusion matrix with better formatting.
 
     Args:
-        cm (array): Confusion matrix.
+        cm (array): Confusion matrix values.
         labels (list): List of label names.
         title (str): Title of the plot.
-
-    Returns:
-        matplotlib.pyplot.Figure: The confusion matrix figure.
+        figsize (tuple): Size of the figure.
+        fontsize (int): Font size for labels.
     """
-    plt.figure(figsize=(12, 10))
+    fig, ax = plt.subplots(figsize=figsize)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
-    disp.plot(include_values=True, cmap='Blues', xticks_rotation='vertical', values_format='d')
-    plt.title(title)
+    disp.plot(include_values=True, cmap='Blues', ax=ax, xticks_rotation='vertical', values_format='d')
+
+    ax.set_title(title, fontsize=fontsize + 4)
+    ax.set_xlabel('Predicted label', fontsize=fontsize + 2)
+    ax.set_ylabel('True label', fontsize=fontsize + 2)
+    plt.xticks(fontsize=fontsize, rotation=45, ha='right')
+    plt.yticks(fontsize=fontsize)
     plt.tight_layout()
+
+    plt.show()
     return plt
 
 def plot_comparison_chart(comparison_df, metric='Test Accuracy (%)', title='Model Comparison'):

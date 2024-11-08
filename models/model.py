@@ -16,17 +16,25 @@ class ClothingModel(nn.Module):
         self.model_name = model_name
 
         if model_name == 'resnet50':
-            self.model = models.resnet50(pretrained=True)
+            self.model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
             num_features = self.model.fc.in_features
             self.model.fc = nn.Linear(num_features, num_classes)
         elif model_name == 'efficientnet_b0':
-            self.model = models.efficientnet_b0(pretrained=True)
+            self.model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
             num_features = self.model.classifier[1].in_features
             self.model.classifier[1] = nn.Linear(num_features, num_classes)
         elif model_name == 'densenet121':
-            self.model = models.densenet121(pretrained=True)
+            self.model = models.densenet121(weights=models.DenseNet121_Weights.DEFAULT)
             num_features = self.model.classifier.in_features
             self.model.classifier = nn.Linear(num_features, num_classes)
+        elif model_name == 'vit-base-patch16-224':
+            self.model = models.vit_b_16(weights=models.ViT_B_16_Weights.DEFAULT)
+            num_features = self.model.heads.head.in_features
+            self.model.heads.head = nn.Linear(num_features, num_classes)
+        elif model_name == 'resnet18':
+            self.model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+            num_features = self.model.fc.in_features
+            self.model.fc = nn.Linear(num_features, num_classes)
         else:
             raise ValueError(f"Unsupported model_name: {model_name}")
 

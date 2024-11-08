@@ -1,4 +1,3 @@
-# data/data_loader.py
 from config import transform, root_dir
 import torch
 from torch.utils.data import DataLoader
@@ -7,19 +6,17 @@ from torchvision import transforms
 from .dataset import ClothingDataset  # Relative import
 
 class DataLoaderManager:
-    def __init__(self, root_dir, seed=42, test_split=0.1, batch_size=32, num_workers=4):
+    def __init__(self, root_dir, test_split=0.2, batch_size=32, num_workers=4):
         """
         Initializes the DataLoaderManager with training and testing DataLoaders.
 
         Args:
             root_dir (str): Root directory of the dataset.
-            seed (int): Random seed for reproducibility.
             test_split (float): Fraction of data to be used as test set.
             batch_size (int): Number of samples per batch.
             num_workers (int): Number of subprocesses for data loading.
         """
         self.root_dir = root_dir
-        self.seed = seed
         self.test_split = test_split
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -52,9 +49,8 @@ class DataLoaderManager:
         test_size = int(self.test_split * dataset_length)
         train_size = dataset_length - test_size
 
-        generator = torch.Generator().manual_seed(self.seed)
         train_dataset, test_dataset = torch.utils.data.random_split(
-            dataset, [train_size, test_size], generator=generator
+            dataset, [train_size, test_size]
         )
 
         train_loader = DataLoader(

@@ -14,7 +14,7 @@ from models.model import ClothingModel
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Train Clothing Classification Model')
-    parser.add_argument('--model', type=str, default='resnet50', choices=['resnet50', 'efficientnet_b0', 'densenet121'], help='Model architecture to use')
+    parser.add_argument('--model', type=str, default='resnet50', choices=['resnet18','resnet50', 'efficientnet_b0', 'densenet121','vit-base-patch16-224'], help='Model architecture to use')
     parser.add_argument('--device', type=str, default='cuda', choices=['cuda', 'cpu'], help='Device to use for training')
     parser.add_argument('--data-dir', type=str, default='data/circular_fashion_v1_extracted', help='Path to the data directory')
     parser.add_argument('--epochs', type=int, default=5, help='Number of training epochs')

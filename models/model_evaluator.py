@@ -37,7 +37,8 @@ class ModelEvaluator:
         model = ClothingModel(num_classes=num_classes, model_name=self.model_name).to(self.device)
 
         # Load model state
-        model.load_state_dict(torch.load(self.model_path, map_location=self.device))
+        model.load_state_dict(torch.load(self.model_path, map_location=self.device)) 
+
         model.eval()
         return model
 
